@@ -16,7 +16,7 @@ basedir = '/your/dataset/dir'
 date = '2011_09_26'
 drive = '0019'
 
-# The range argument is optional - leaving it empty loads the whole dataset
+# The range argument is optional - default is None, which loads the whole dataset
 data = kittitools.raw(basedir, date, drive, range(0, 50, 5))
 
 # Sensor calibration data are loaded automatically
@@ -31,10 +31,10 @@ cam2_image = data.rgb[0]['left']
 ```
 
 ### OpenCV
-Image data can be automatically converted to an OpenCV-friendly format (i.e., `uint8` with `BGR` color channel ordering) simply by specifying an additional parameter to the image loading functions:
+Image data can be automatically converted to an OpenCV-friendly format (i.e., `uint8` with `BGR` color channel ordering) simply by specifying an additional parameter in the image loader function:
 ```python
-data.load_gray(opencv=True)
-data.load_rgb(opencv=True)
+data.load_gray('cv2')  # Loads images as uint8 grayscale
+data.load_rgb('cv2')   # Loads images as uint8 with BGR ordering
 ```
 
 

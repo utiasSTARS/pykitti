@@ -121,7 +121,7 @@ class raw:
 
         print('done.')
 
-    def __load_stereo(self, imL_path, imR_path, opencv):
+    def __load_stereo(self, imL_path, imR_path, imformat):
         # Find all the image files
         imdataL_path = os.path.join(imL_path, 'data', '*.png')
         imdataR_path = os.path.join(imR_path, 'data', '*.png')
@@ -139,7 +139,7 @@ class raw:
         impairs = []
         for imfiles in zip(imL_files, imR_files):
             # Convert to uint8 for OpenCV if requested
-            if opencv:
+            if imformat is 'cv2':
                 impairs.append({
                     'left': np.uint8(mpimg.imread(imfiles[0]) * 255),
                     'right': np.uint8(mpimg.imread(imfiles[1]) * 255)})
@@ -149,10 +149,10 @@ class raw:
 
         return impairs
 
-    def load_gray(self, opencv=False):
+    def load_gray(self, imformat=''):
         """Load monochrome stereo images from file.
 
-        Setting opencv=True will convert the images to uint8 for
+        Setting imformat='cv2' will convert the images to uint8 for
         easy use with OpenCV.
         """
         print('Loading monochrome images from ' + self.drive + '...')
@@ -160,14 +160,14 @@ class raw:
         imL_path = os.path.join(self.path, 'image_00')
         imR_path = os.path.join(self.path, 'image_01')
 
-        self.gray = self.__load_stereo(imL_path, imR_path, opencv)
+        self.gray = self.__load_stereo(imL_path, imR_path, imformat)
 
         print('done.')
 
-    def load_rgb(self, opencv=False):
+    def load_rgb(self, imformat=''):
         """Load RGB stereo images from file.
 
-        Setting opencv=True will convert the images to uint8 and BGR for
+        Setting imformat='cv2' will convert the images to uint8 and BGR for
         easy use with OpenCV.
         """
         print('Loading color images from ' + self.drive + '...')
@@ -175,10 +175,10 @@ class raw:
         imL_path = os.path.join(self.path, 'image_02')
         imR_path = os.path.join(self.path, 'image_03')
 
-        self.rgb = self.__load_stereo(imL_path, imR_path, opencv)
+        self.rgb = self.__load_stereo(imL_path, imR_path, imformat)
 
         # Convert from RGB to BGR for OpenCV if requested
-        if opencv:
+        if imformat is 'cv2':
             for pair in self.rgb:
                 pair['left'] = pair['left'][:, :, ::-1]
                 pair['right'] = pair['right'][:, :, ::-1]

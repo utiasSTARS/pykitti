@@ -22,8 +22,8 @@ frame_range = range(0, 20, 5)
 dataset = kitti.raw(basedir, date, drive, frame_range)
 
 # Load image data
-dataset.load_gray(opencv=True)  # Loads as uint8
-dataset.load_rgb(opencv=True)   # Loads as uint8 with BGR ordering
+dataset.load_gray('cv2')  # Loads images as uint8 grayscale
+dataset.load_rgb('cv2')   # Loads images as uint8 with BGR ordering
 
 # Do some stereo processing
 stereo = cv2.StereoBM_create(numDisparities=64, blockSize=15)
