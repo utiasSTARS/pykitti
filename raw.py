@@ -121,7 +121,7 @@ class raw:
 
         print('done.')
 
-    def __load_stereo(self, imL_path, imR_path):
+    def __load_stereo(self, imL_path, imR_path, opencv):
         # Find all the image files
         imdataL_path = os.path.join(imL_path, 'data', '*.png')
         imdataR_path = os.path.join(imR_path, 'data', '*.png')
@@ -138,41 +138,50 @@ class raw:
         # Read all the image files
         impairs = []
         for imfiles in zip(imL_files, imR_files):
-            impairs.append({'left': mpimg.imread(imfiles[0]),
-                            'right': mpimg.imread(imfiles[1])})
+            # Convert to uint8 for OpenCV if requested
+            if opencv:
+                impairs.append({
+                    'left': np.uint8(mpimg.imread(imfiles[0]) * 255),
+                    'right': np.uint8(mpimg.imread(imfiles[1]) * 255)})
+            else:
+                impairs.append({'left': mpimg.imread(imfiles[0]),
+                                'right': mpimg.imread(imfiles[1])})
 
         return impairs
 
-    def load_gray(self):
-        """Load monochrome stereo images from file."""
+    def load_gray(self, opencv=False):
+        """Load monochrome stereo images from file.
+
+        Setting opencv=True will convert the images to uint8 for
+        easy use with OpenCV.
+        """
         print('Loading monochrome images from ' + self.drive + '...')
 
         imL_path = os.path.join(self.path, 'image_00')
         imR_path = os.path.join(self.path, 'image_01')
 
-        self.gray = self.__load_stereo(imL_path, imR_path)
+        self.gray = self.__load_stereo(imL_path, imR_path, opencv)
 
         print('done.')
 
-    def load_rgb(self):
+    def load_rgb(self, opencv=False):
         """Load RGB stereo images from file.
 
-        If you want to use the images with OpenCV, you will have
-        to convert them from RGB to BGR. The easiest way is with numpy
-        array index permutation:
-
-            bgr_image = rgb_image[:,:,::-1]
-
-        You could also use OpenCV's cvtColor tool:
-
-            bgr_image = cv2.cvtColor(rgb_image, cv2.RGB2BGR)
+        Setting opencv=True will convert the images to uint8 and BGR for
+        easy use with OpenCV.
         """
         print('Loading color images from ' + self.drive + '...')
 
         imL_path = os.path.join(self.path, 'image_02')
         imR_path = os.path.join(self.path, 'image_03')
 
-        self.rgb = self.__load_stereo(imL_path, imR_path)
+        self.rgb = self.__load_stereo(imL_path, imR_path, opencv)
+
+        # Convert from RGB to BGR for OpenCV if requested
+        if opencv:
+            for pair in self.rgb:
+                pair['left'] = pair['left'][:, :, ::-1]
+                pair['right'] = pair['right'][:, :, ::-1]
 
         print('done.')
 

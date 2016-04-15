@@ -30,5 +30,13 @@ data.load_rgb()
 cam2_image = data.rgb[0]['left']
 ```
 
+### OpenCV
+Image data can be automatically converted to an OpenCV-friendly format (i.e., `uint8` with `BGR` color channel ordering) simply by specifying an additional parameter to the image loading functions:
+```python
+data.load_gray(opencv=True)
+data.load_rgb(opencv=True)
+```
+
+
 ## References
 [1] A. Geiger, P. Lenz, C. Stiller, and R. Urtasun, "Vision meets robotics: The KITTI dataset," Int. J. Robot. Research (IJRR), vol. 32, no. 11, pp. 1231–1237, Sep. 2013. http://www.cvlibs.net/datasets/kitti/
