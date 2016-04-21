@@ -3,6 +3,7 @@
 import datetime as dt
 import glob
 import os
+from collections import namedtuple
 
 import matplotlib.image as mpimg
 import numpy as np
@@ -49,17 +50,21 @@ class raw:
 
         print('done.')
 
-    def __get_poses_from_oxts(self, oxts):
-        er = 6378137  # earth radius (approx.) in meters
+    def __get_poses_from_oxts(self, oxts_packets):
+        er = 6378137.  # earth radius (approx.) in meters
 
-        t_0 = []  # initial position
-        for o in oxts:
+        # compute scale from first lat value
+        scale = np.cos(oxts_packets[0].lat * np.pi / 180.)
+
+        t_0 = []    # initial position
+        poses = []  # list of poses computed from oxts
+        for packet in oxts_packets:
             # Use a Mercator projection to get the translation vector
-            scale = np.cos(o['lat'] * np.pi / 180.0)
-            tx = scale * o['lon'] * np.pi * er / 180.0
-            ty = scale * np.log(np.tan((90.0 + o['lat']) * np.pi / 360.0))
-            tz = o['alt']
-            t = np.matrix([tx, ty, tz]).T
+            tx = scale * packet.lon * np.pi * er / 180.
+            ty = scale * er * \
+                np.log(np.tan((90. + packet.lat) * np.pi / 360.))
+            tz = packet.alt
+            t = np.array([tx, ty, tz])
 
             # We want the initial position to be the origin, but keep the ENU
             # coordinate system
@@ -67,13 +72,15 @@ class raw:
                 t_0 = t
 
             # Use the Euler angles to get the rotation matrix
-            rx = o['roll']
-            ry = o['pitch']
-            rz = o['yaw']
-            R = utils.rotz(rz) * utils.roty(ry) * utils.rotx(rx)
+            Rx = utils.rotx(packet.roll)
+            Ry = utils.roty(packet.pitch)
+            Rz = utils.rotz(packet.yaw)
+            R = Rz.dot(Ry.dot(Rx))
 
             # Combine the translation and rotation into a homogeneous transform
-            o['T_imu_w'] = utils.transform_from_rot_trans(R, t - t_0)
+            poses.append(utils.transform_from_rot_trans(R, t - t_0))
+
+        return poses
 
     def load_oxts(self):
         """Load OXTS data from file."""
@@ -90,7 +97,18 @@ class raw:
         print('Found ' + str(len(oxts_files)) + ' OXTS measurements...')
 
         # Extract the data from each OXTS packet
-        self.oxts = []
+        # Per dataformat.txt
+        OxtsPacket = namedtuple('OxtsPacket',
+                                'lat, lon, alt, ' +
+                                'roll, pitch, yaw, ' +
+                                'vn, ve, vf, vl, vu, ' +
+                                'ax, ay, az, af, al, au, ' +
+                                'wx, wy, wz, wf, wl, wu, ' +
+                                'pos_accuracy, vel_accuracy, ' +
+                                'navstat, numsats, ' +
+                                'posmode, velmode, orimode')
+
+        oxts_packets = []
         for filename in oxts_files:
             with open(filename, 'r') as f:
                 for line in f.readlines():
@@ -99,29 +117,21 @@ class raw:
                     line[:-5] = [float(x) for x in line[:-5]]
                     line[-5:] = [int(x) for x in line[-5:]]
 
-                    # Per dataformat.txt
-                    data = {'lat': line[0], 'lon': line[1], 'alt': line[2],
-                            'roll': line[3], 'pitch': line[4], 'yaw': line[5],
-                            'vn': line[6], 've': line[7],
-                            'vf': line[8], 'vl': line[9], 'vu': line[10],
-                            'ax': line[11], 'ay': line[12], 'az': line[13],
-                            'af': line[14], 'al': line[15], 'au': line[16],
-                            'wx': line[17], 'wy': line[18], 'wz': line[19],
-                            'wf': line[20], 'wl': line[21], 'wu': line[22],
-                            'pos_accuracy': line[23], 'vel_accuracy': line[24],
-                            'navstat': line[25], 'numsats': line[26],
-                            'posmode': line[27], 'velmode': line[28],
-                            'orimode': line[29]}
+                    data = OxtsPacket(*line)
+                    oxts_packets.append(data)
 
-                    self.oxts.append(data)
+        # Precompute the IMU poses in the world frame
+        T_w_imu = self.__get_poses_from_oxts(oxts_packets)
 
-        # Precompute the IMU poses in the world frame and add them to the
-        # OXTS dictionary
-        self.__get_poses_from_oxts(self.oxts)
+        # Bundle into an easy-to-access structure
+        OxtsData = namedtuple('OxtsData', 'packet, T_w_imu')
+        self.oxts = []
+        for (p, T) in zip(oxts_packets, T_w_imu):
+            self.oxts.append(OxtsData(p, T))
 
         print('done.')
 
-    def __load_stereo(self, imL_path, imR_path, imformat):
+    def __load_stereo(self, imL_path, imR_path, **kwargs):
         # Find all the image files
         imdataL_path = os.path.join(imL_path, 'data', '*.png')
         imdataR_path = os.path.join(imR_path, 'data', '*.png')
@@ -136,20 +146,30 @@ class raw:
         print('Found ' + str(len(imL_files)) + ' image pairs...')
 
         # Read all the image files
+        StereoPair = namedtuple('StereoPair', 'left, right')
+
         impairs = []
         for imfiles in zip(imL_files, imR_files):
-            # Convert to uint8 for OpenCV if requested
+            # Convert to uint8 and BGR for OpenCV if requested
+            imformat = kwargs.get('format', '')
             if imformat is 'cv2':
-                impairs.append({
-                    'left': np.uint8(mpimg.imread(imfiles[0]) * 255),
-                    'right': np.uint8(mpimg.imread(imfiles[1]) * 255)})
+                imL = np.uint8(mpimg.imread(imfiles[0]) * 255)
+                imR = np.uint8(mpimg.imread(imfiles[1]) * 255)
+
+                # Convert RGB to BGR
+                if len(imL.shape) > 2:
+                    imL = imL[:, :, ::-1]
+                    imR = imR[:, :, ::-1]
+
             else:
-                impairs.append({'left': mpimg.imread(imfiles[0]),
-                                'right': mpimg.imread(imfiles[1])})
+                imL = mpimg.imread(imfiles[0])
+                imR = mpimg.imread(imfiles[1])
+
+            impairs.append(StereoPair(imL, imR))
 
         return impairs
 
-    def load_gray(self, imformat=''):
+    def load_gray(self, **kwargs):
         """Load monochrome stereo images from file.
 
         Setting imformat='cv2' will convert the images to uint8 for
@@ -160,11 +180,11 @@ class raw:
         imL_path = os.path.join(self.path, 'image_00')
         imR_path = os.path.join(self.path, 'image_01')
 
-        self.gray = self.__load_stereo(imL_path, imR_path, imformat)
+        self.gray = self.__load_stereo(imL_path, imR_path, **kwargs)
 
         print('done.')
 
-    def load_rgb(self, imformat=''):
+    def load_rgb(self, **kwargs):
         """Load RGB stereo images from file.
 
         Setting imformat='cv2' will convert the images to uint8 and BGR for
@@ -175,13 +195,7 @@ class raw:
         imL_path = os.path.join(self.path, 'image_02')
         imR_path = os.path.join(self.path, 'image_03')
 
-        self.rgb = self.__load_stereo(imL_path, imR_path, imformat)
-
-        # Convert from RGB to BGR for OpenCV if requested
-        if imformat is 'cv2':
-            for pair in self.rgb:
-                pair['left'] = pair['left'][:, :, ::-1]
-                pair['right'] = pair['right'][:, :, ::-1]
+        self.rgb = self.__load_stereo(imL_path, imR_path, **kwargs)
 
         print('done.')
 
