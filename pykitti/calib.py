@@ -6,8 +6,8 @@ import numpy as np
 
 import pykitti.utils as utils
 
-author = "Lee Clement"
-email = "lee.clement@robotics.utias.utoronto.ca"
+__author__ = "Lee Clement"
+__email__ = "lee.clement@robotics.utias.utoronto.ca"
 
 
 def read_calib_file(calibdir, filename):
