@@ -1,9 +1,9 @@
-"""Example of kitti.raw usage."""
+"""Example of pykitti.raw usage."""
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
-import kittitools as kitti
+import pykitti
 
 __author__ = "Lee Clement"
 __email__ = "lee.clement@robotics.utias.utoronto.ca"
@@ -19,8 +19,8 @@ drive = '0019'
 frame_range = range(0, 20, 5)
 
 # Load the data
-# dataset = kitti.raw(basedir, date, drive)
-dataset = kitti.raw(basedir, date, drive, frame_range)
+# dataset = pykitti.raw(basedir, date, drive)
+dataset = pykitti.raw(basedir, date, drive, frame_range)
 
 # Calibration data is loaded automatically
 print('\nIMU-to-Velodyne transformation:\n' + str(dataset.calib.T_velo_imu))

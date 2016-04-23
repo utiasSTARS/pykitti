@@ -1,8 +1,8 @@
-"""Example of kitti.raw usage with OpenCV."""
+"""Example of pykitti.raw usage with OpenCV."""
 import cv2
 import matplotlib.pyplot as plt
 
-import kittitools as kitti
+import pykitti
 
 __author__ = "Lee Clement"
 __email__ = "lee.clement@robotics.utias.utoronto.ca"
@@ -18,7 +18,7 @@ drive = '0019'
 frame_range = range(0, 20, 5)
 
 # Load the data
-dataset = kitti.raw(basedir, date, drive, frame_range)
+dataset = pykitti.raw(basedir, date, drive, frame_range)
 
 # Load image data
 dataset.load_gray(format='cv2')  # Loads images as uint8 grayscale

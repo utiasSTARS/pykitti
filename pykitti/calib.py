@@ -4,7 +4,7 @@ from collections import namedtuple
 
 import numpy as np
 
-import kittitools.utils as utils
+import pykitti.utils as utils
 
 author = "Lee Clement"
 email = "lee.clement@robotics.utias.utoronto.ca"

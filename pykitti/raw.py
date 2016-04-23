@@ -1,4 +1,4 @@
-"""Provides 'raw', which loads and parses raw KITTI data."""
+"""Provides 'Raw', which loads and parses raw KITTI data."""
 
 import datetime as dt
 import glob
@@ -8,8 +8,8 @@ from collections import namedtuple
 import matplotlib.image as mpimg
 import numpy as np
 
-import kittitools.calib as calib
-import kittitools.utils as utils
+import pykitti.calib as calib
+import pykitti.utils as utils
 
 __author__ = "Lee Clement"
 __email__ = "lee.clement@robotics.utias.utoronto.ca"
