@@ -1,6 +1,17 @@
 # pykitti
 This package provides a minimal set of tools for working with the KITTI dataset [[1]](#references) in Python. So far only the raw datasets and associated calibration data are supported.
 
+## Setup
+To get started, simply clone the repository to your machine
+```
+git clone https://github.com/utiasSTARS/pykitti.git
+```
+and run the provided setup tool
+```
+cd pykitti
+python setup.py install
+```
+
 ## Notation
 Homogeneous coordinate transformations are provided as 4x4 `numpy.array` objects and are denoted as `T_destinationFrame_originFrame`.
 

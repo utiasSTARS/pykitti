@@ -1,4 +1,4 @@
-"""Provides 'Raw', which loads and parses raw KITTI data."""
+"""Provides 'raw', which loads and parses raw KITTI data."""
 
 import datetime as dt
 import glob
