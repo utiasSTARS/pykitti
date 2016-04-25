@@ -18,7 +18,7 @@ Homogeneous coordinate transformations are provided as 4x4 `numpy.array` objects
 Pinhole camera intrinsics for camera `N` are provided as 3x3 `numpy.array` objects and are denoted as `K_camN`. Stereo pair baselines are given in meters as `b_gray` for the monochrome stereo pair (`cam0` and `cam1`), and `b_rgb` for the color stereo pair (`cam2` and `cam3`).
 
 ## Example
-More detailed examples can be found in the `tests` directory, but the general idea is to specify what dataset you want to load, then load the parts you need and do something with them:
+More detailed examples can be found in the `demos` directory, but the general idea is to specify what dataset you want to load, then load the parts you need and do something with them:
 
 ```python
 import pykitti
