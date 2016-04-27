@@ -21,6 +21,7 @@ setup(
     author='Lee Clement',
     author_email='lee.clement@robotics.utias.utoronto.ca',
     url='https://github.com/utiasSTARS/pykitti',
+    download_url='https://github.com/utiasSTARS/pykitti/tarball/0.1.0'
     license=license,
     packages=['pykitti'],
     install_requires=['numpy', 'matplotlib']
