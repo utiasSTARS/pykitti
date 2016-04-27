@@ -1,8 +1,16 @@
 # pykitti
-This package provides a minimal set of tools for working with the KITTI dataset [[1]](#references) in Python. So far only the raw datasets and associated calibration data are supported.
+This package provides a minimal set of tools for working with the KITTI dataset [[1]](#references) in Python. So far only the raw datasets and odometry benchmark datasets are supported.
 
-## Setup
-To get started, simply clone the repository to your machine
+## Installation
+
+### Using pip
+You can install pykitti via pip using
+```
+pip install pykitti
+```
+
+### From source
+To install the package from source, simply clone the repository to your machine
 ```
 git clone https://github.com/utiasSTARS/pykitti.git
 ```
@@ -30,10 +38,10 @@ drive = '0019'
 # The range argument is optional - default is None, which loads the whole dataset
 data = pykitti.raw(basedir, date, drive, range(0, 50, 5))
 
-# Sensor calibration data are loaded automatically
+# Data are loaded only if requested
+data.load_calib()
 point_cam0 = data.calib.T_cam0_velo.dot(point_velo)
 
-# Other data are loaded only if requested
 data.load_oxts()
 point_w = data.oxts[0].T_w_imu.dot(point_imu)
 
@@ -49,7 +57,7 @@ data.load_gray(format='cv2')  # Loads images as uint8 grayscale
 data.load_rgb(format='cv2')   # Loads images as uint8 with BGR ordering
 ```
 
-Note: This package does not actually require that OpenCV be installed on your system, except to run `test_raw_cv2.py`.
+Note: This package does not actually require that OpenCV be installed on your system, except to run `demo_raw_cv2.py`.
 
 ## References
 [1] A. Geiger, P. Lenz, C. Stiller, and R. Urtasun, "Vision meets robotics: The KITTI dataset," Int. J. Robot. Research (IJRR), vol. 32, no. 11, pp. 1231–1237, Sep. 2013. [http://www.cvlibs.net/datasets/kitti/](http://www.cvlibs.net/datasets/kitti/)

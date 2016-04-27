@@ -15,7 +15,7 @@ except ImportError:
 
 setup(
     name='pykitti',
-    version='0.0.1',
+    version='0.1.0',
     description='A minimal set of tools for working with the KITTI dataset in Python',
     long_description=readme,
     author='Lee Clement',
