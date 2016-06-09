@@ -1,5 +1,7 @@
 # pykitti
-This package provides a minimal set of tools for working with the KITTI dataset [[1]](#references) in Python. So far only the raw datasets and odometry benchmark datasets are supported.
+![KITTI](pykitti.png)
+
+This package provides a minimal set of tools for working with the KITTI dataset [[1]](#references) in Python. So far only the raw datasets and odometry benchmark datasets are supported, but we're working on adding support for the others. We welcome contributions from the community.
 
 ## Installation
 
@@ -10,7 +12,7 @@ pip install pykitti
 ```
 
 ### From source
-To install the package from source, simply clone the repository to your machine
+To install the package from source, simply clone or download the repository to your machine
 ```
 git clone https://github.com/utiasSTARS/pykitti.git
 ```
