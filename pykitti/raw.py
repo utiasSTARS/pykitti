@@ -173,7 +173,6 @@ class raw:
         # Find all the data files
         oxts_path = os.path.join(self.data_path, 'oxts', 'data', '*.txt')
         oxts_files = sorted(glob.glob(oxts_path))
-        print(oxts_files)
 
         # Subselect the chosen range of frames, if any
         if self.frame_range:
