@@ -172,7 +172,8 @@ class raw:
 
         # Find all the data files
         oxts_path = os.path.join(self.data_path, 'oxts', 'data', '*.txt')
-        oxts_files = glob.glob(oxts_path)
+        oxts_files = sorted(glob.glob(oxts_path))
+        print(oxts_files)
 
         # Subselect the chosen range of frames, if any
         if self.frame_range:
@@ -226,8 +227,8 @@ class raw:
         imL_path = os.path.join(self.data_path, 'image_00', 'data', '*.png')
         imR_path = os.path.join(self.data_path, 'image_01', 'data', '*.png')
 
-        imL_files = glob.glob(imL_path)
-        imR_files = glob.glob(imR_path)
+        imL_files = sorted(glob.glob(imL_path))
+        imR_files = sorted(glob.glob(imR_path))
 
         # Subselect the chosen range of frames, if any
         if self.frame_range:
@@ -251,8 +252,8 @@ class raw:
         imL_path = os.path.join(self.data_path, 'image_02', 'data', '*.png')
         imR_path = os.path.join(self.data_path, 'image_03', 'data', '*.png')
 
-        imL_files = glob.glob(imL_path)
-        imR_files = glob.glob(imR_path)
+        imL_files = sorted(glob.glob(imL_path))
+        imR_files = sorted(glob.glob(imR_path))
 
         # Subselect the chosen range of frames, if any
         if self.frame_range:
@@ -270,7 +271,7 @@ class raw:
         # Find all the Velodyne files
         velo_path = os.path.join(
             self.data_path, 'velodyne_points', 'data', '*.bin')
-        velo_files = glob.glob(velo_path)
+        velo_files = sorted(glob.glob(velo_path))
 
         # Subselect the chosen range of frames, if any
         if self.frame_range:

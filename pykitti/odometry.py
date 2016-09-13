@@ -128,8 +128,8 @@ class odometry:
         imL_path = os.path.join(self.sequence_path, 'image_0', '*.png')
         imR_path = os.path.join(self.sequence_path, 'image_1', '*.png')
 
-        imL_files = glob.glob(imL_path)
-        imR_files = glob.glob(imR_path)
+        imL_files = sorted(glob.glob(imL_path))
+        imR_files = sorted(glob.glob(imR_path))
 
         # Subselect the chosen range of frames, if any
         if self.frame_range:
@@ -154,8 +154,8 @@ class odometry:
         imL_path = os.path.join(self.sequence_path, 'image_2', '*.png')
         imR_path = os.path.join(self.sequence_path, 'image_3', '*.png')
 
-        imL_files = glob.glob(imL_path)
-        imR_files = glob.glob(imR_path)
+        imL_files = sorted(glob.glob(imL_path))
+        imR_files = sorted(glob.glob(imR_path))
 
         # Subselect the chosen range of frames, if any
         if self.frame_range:
@@ -172,7 +172,7 @@ class odometry:
         """Load velodyne [x,y,z,reflectance] scan data from binary files."""
         # Find all the Velodyne files
         velo_path = os.path.join(self.sequence_path, 'velodyne', '*.bin')
-        velo_files = glob.glob(velo_path)
+        velo_files = sorted(glob.glob(velo_path))
 
         # Subselect the chosen range of frames, if any
         if self.frame_range:
