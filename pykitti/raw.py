@@ -199,7 +199,7 @@ class raw:
                     line = line.split()
                     # Last five entries are flags and counts
                     line[:-5] = [float(x) for x in line[:-5]]
-                    line[-5:] = [int(x) for x in line[-5:]]
+                    line[-5:] = [int(float(x)) for x in line[-5:]]
 
                     data = OxtsPacket(*line)
                     oxts_packets.append(data)
