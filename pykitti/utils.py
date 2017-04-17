@@ -60,37 +60,81 @@ def read_calib_file(filepath):
     return data
 
 
-def load_stereo_pairs(imL_files, imR_files, **kwargs):
-    """Helper method to read stereo image pairs."""
-    StereoPair = namedtuple('StereoPair', 'left, right')
+def pose_from_oxts_packet(packet):
+    """Helper method to compute a SE(3) pose matrix from an OXTS packet."""
+    er = 6378137.  # earth radius (approx.) in meters
 
-    impairs = []
-    for imfiles in zip(imL_files, imR_files):
+    # compute scale from lat value
+    scale = np.cos(packet.lat * np.pi / 180.)
+
+    t_0 = []    # initial position
+    poses = []  # list of poses computed from oxts
+
+    # Use a Mercator projection to get the translation vector
+    tx = scale * packet.lon * np.pi * er / 180.
+    ty = scale * er * \
+        np.log(np.tan((90. + packet.lat) * np.pi / 360.))
+    tz = packet.alt
+    t = np.array([tx, ty, tz])
+
+    # Use the Euler angles to get the rotation matrix
+    Rx = rotx(packet.roll)
+    Ry = roty(packet.pitch)
+    Rz = rotz(packet.yaw)
+    R = Rz.dot(Ry.dot(Rx))
+
+    # Combine the translation and rotation into a homogeneous transform
+    return transform_from_rot_trans(R, t)
+
+
+def get_oxts_packets_and_poses(oxts_files):
+    """Generator to read OXTS ground truth data."""
+    # Per dataformat.txt
+    OxtsPacket = namedtuple('OxtsPacket',
+                            'lat, lon, alt, ' +
+                            'roll, pitch, yaw, ' +
+                            'vn, ve, vf, vl, vu, ' +
+                            'ax, ay, az, af, al, au, ' +
+                            'wx, wy, wz, wf, wl, wu, ' +
+                            'pos_accuracy, vel_accuracy, ' +
+                            'navstat, numsats, ' +
+                            'posmode, velmode, orimode')
+
+    # Bundle into an easy-to-access structure
+    OxtsData = namedtuple('OxtsData', 'packet, T_w_imu')
+
+    for filename in oxts_files:
+        with open(filename, 'r') as f:
+            for line in f.readlines():
+                line = line.split()
+                # Last five entries are flags and counts
+                line[:-5] = [float(x) for x in line[:-5]]
+                line[-5:] = [int(float(x)) for x in line[-5:]]
+
+                packet = OxtsPacket(*line)
+                T_w_imu = pose_from_oxts_packet(packet)
+
+                yield OxtsData(packet, T_w_imu)
+
+
+def get_images(imfiles, imformat):
+    """Generator to read image files."""
+    for file in imfiles:
         # Convert to uint8 and BGR for OpenCV if requested
-        imformat = kwargs.get('format', '')
         if imformat is 'cv2':
-            imL = np.uint8(mpimg.imread(imfiles[0]) * 255)
-            imR = np.uint8(mpimg.imread(imfiles[1]) * 255)
+            im = np.uint8(mpimg.imread(file) * 255)
 
             # Convert RGB to BGR
-            if len(imL.shape) > 2:
-                imL = imL[:, :, ::-1]
-                imR = imR[:, :, ::-1]
-
+            if len(im.shape) > 2:
+                im = im[:, :, ::-1]
         else:
-            imL = mpimg.imread(imfiles[0])
-            imR = mpimg.imread(imfiles[1])
+            im = mpimg.imread(file)
 
-        impairs.append(StereoPair(imL, imR))
-
-    return impairs
+        yield im
 
 
-def load_velo_scans(velo_files):
-    """Helper method to parse velodyne binary files into a list of scans."""
-    scan_list = []
+def get_velo_scans(velo_files):
+    """Generator to parse velodyne binary files into arrays."""
     for filename in velo_files:
         scan = np.fromfile(filename, dtype=np.float32)
-        scan_list.append(scan.reshape((-1, 4)))
-
-    return scan_list
+        yield scan.reshape((-1, 4))
