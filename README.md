@@ -37,8 +37,8 @@ basedir = '/your/dataset/dir'
 date = '2011_09_26'
 drive = '0019'
 
-# The range argument is optional - default is None, which loads the whole dataset.
-# Calibration and timestamp data are loaded automatically. 
+# The 'frames' argument is optional - default: None, which loads the whole dataset.
+# Calibration and timestamp data are read automatically. 
 # Other sensor data (cameras, IMU, Velodyne) are available via generators.
 data = pykitti.raw(basedir, date, drive, frames=range(0, 50, 5))
 
@@ -56,7 +56,8 @@ point_cam0 = data.calib.T_cam0_velo.dot(point_velo)
 point_imu = np.array([0,0,0,1])
 point_w = [o.T_w_imu.dot(point_imu) for o in data.oxts]
 
-cam2_image = next(data.rgb).left
+cam0_image = next(data.cam0)
+cam2_image, cam3_image = next(data.rgb)
 ```
 ### OpenCV
 Image data can be automatically converted to an OpenCV-friendly format (i.e., `uint8` with `BGR` color channel ordering) simply by specifying an additional parameter in the constructor:
@@ -69,3 +70,4 @@ Note: This package does not actually require that OpenCV be installed on your sy
 
 ## References
 [1] A. Geiger, P. Lenz, C. Stiller, and R. Urtasun, "Vision meets robotics: The KITTI dataset," Int. J. Robot. Research (IJRR), vol. 32, no. 11, pp. 1231–1237, Sep. 2013. [http://www.cvlibs.net/datasets/kitti/](http://www.cvlibs.net/datasets/kitti/)
+`

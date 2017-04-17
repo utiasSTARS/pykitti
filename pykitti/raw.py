@@ -43,7 +43,7 @@ class raw:
         oxts_files = sorted(glob.glob(oxts_path))
 
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             oxts_files = [oxts_files[i] for i in self.frames]
 
         # Return a generator yielding OXTS packets and poses
@@ -55,7 +55,7 @@ class raw:
         impath = os.path.join(self.data_path, 'image_00', 'data', '*.png')
         imfiles = sorted(glob.glob(impath))
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             imfiles = [imfiles[i] for i in self.frames]
 
         # Return a generator yielding the images
@@ -67,7 +67,7 @@ class raw:
         impath = os.path.join(self.data_path, 'image_01', 'data', '*.png')
         imfiles = sorted(glob.glob(impath))
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             imfiles = [imfiles[i] for i in self.frames]
 
         # Return a generator yielding the images
@@ -79,7 +79,7 @@ class raw:
         impath = os.path.join(self.data_path, 'image_02', 'data', '*.png')
         imfiles = sorted(glob.glob(impath))
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             imfiles = [imfiles[i] for i in self.frames]
 
         # Return a generator yielding the images
@@ -91,7 +91,7 @@ class raw:
         impath = os.path.join(self.data_path, 'image_03', 'data', '*.png')
         imfiles = sorted(glob.glob(impath))
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             imfiles = [imfiles[i] for i in self.frames]
 
         # Return a generator yielding the images
@@ -118,7 +118,7 @@ class raw:
         velo_files = sorted(glob.glob(velo_path))
 
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             velo_files = [velo_files[i] for i in self.frames]
 
         # Return a generator yielding Velodyne scans.
@@ -226,5 +226,5 @@ class raw:
                 self.timestamps.append(t)
 
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             self.timestamps = [self.timestamps[i] for i in self.frames]

@@ -60,15 +60,10 @@ def read_calib_file(filepath):
     return data
 
 
-def pose_from_oxts_packet(packet):
-    """Helper method to compute a SE(3) pose matrix from an OXTS packet."""
+def pose_from_oxts_packet(packet, scale):
+    """Helper method to compute a SE(3) pose matrix from an OXTS packet.
+    """
     er = 6378137.  # earth radius (approx.) in meters
-
-    # compute scale from lat value
-    scale = np.cos(packet.lat * np.pi / 180.)
-
-    t_0 = []    # initial position
-    poses = []  # list of poses computed from oxts
 
     # Use a Mercator projection to get the translation vector
     tx = scale * packet.lon * np.pi * er / 180.
@@ -84,11 +79,15 @@ def pose_from_oxts_packet(packet):
     R = Rz.dot(Ry.dot(Rx))
 
     # Combine the translation and rotation into a homogeneous transform
-    return transform_from_rot_trans(R, t)
+    return R, t
 
 
 def get_oxts_packets_and_poses(oxts_files):
-    """Generator to read OXTS ground truth data."""
+    """Generator to read OXTS ground truth data.
+
+       Poses are given in an East-North-Up coordinate system 
+       whose origin is the first GPS position.
+    """
     # Per dataformat.txt
     OxtsPacket = namedtuple('OxtsPacket',
                             'lat, lon, alt, ' +
@@ -103,6 +102,11 @@ def get_oxts_packets_and_poses(oxts_files):
     # Bundle into an easy-to-access structure
     OxtsData = namedtuple('OxtsData', 'packet, T_w_imu')
 
+    # Scale for Mercator projection (from first lat value)
+    scale = None
+    # Origin of the global coordinate system (first GPS position)
+    origin = None
+
     for filename in oxts_files:
         with open(filename, 'r') as f:
             for line in f.readlines():
@@ -112,7 +116,16 @@ def get_oxts_packets_and_poses(oxts_files):
                 line[-5:] = [int(float(x)) for x in line[-5:]]
 
                 packet = OxtsPacket(*line)
-                T_w_imu = pose_from_oxts_packet(packet)
+
+                if scale is None:
+                    scale = np.cos(packet.lat * np.pi / 180.)
+
+                R, t = pose_from_oxts_packet(packet, scale)
+
+                if origin is None:
+                    origin = t
+
+                T_w_imu = transform_from_rot_trans(R, t - origin)
 
                 yield OxtsData(packet, T_w_imu)
 

@@ -59,7 +59,7 @@ class odometry:
         impath = os.path.join(self.sequence_path, 'image_0', '*.png')
         imfiles = sorted(glob.glob(impath))
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             imfiles = [imfiles[i] for i in self.frames]
 
         # Return a generator yielding the images
@@ -71,7 +71,7 @@ class odometry:
         impath = os.path.join(self.sequence_path, 'image_1', '*.png')
         imfiles = sorted(glob.glob(impath))
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             imfiles = [imfiles[i] for i in self.frames]
 
         # Return a generator yielding the images
@@ -83,7 +83,7 @@ class odometry:
         impath = os.path.join(self.sequence_path, 'image_2', '*.png')
         imfiles = sorted(glob.glob(impath))
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             imfiles = [imfiles[i] for i in self.frames]
 
         # Return a generator yielding the images
@@ -95,7 +95,7 @@ class odometry:
         impath = os.path.join(self.sequence_path, 'image_3', '*.png')
         imfiles = sorted(glob.glob(impath))
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             imfiles = [imfiles[i] for i in self.frames]
 
         # Return a generator yielding the images
@@ -121,7 +121,7 @@ class odometry:
         velo_files = sorted(glob.glob(velo_path))
 
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             velo_files = [velo_files[i] for i in self.frames]
 
         # Return a generator yielding Velodyne scans.
@@ -191,5 +191,5 @@ class odometry:
                 self.timestamps.append(t)
 
         # Subselect the chosen range of frames, if any
-        if self.frames:
+        if self.frames is not None:
             self.timestamps = [self.timestamps[i] for i in self.frames]
