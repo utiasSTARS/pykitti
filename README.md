@@ -22,6 +22,9 @@ cd pykitti
 python setup.py install
 ```
 
+## Assumptions
+This package assumes that you have also downloaded the calibration data associated with the sequences you want to work on (these are separate files from the sequences themselves), and that the directory structure is unchanged from the original structure laid out in the KITTI zip files.
+
 ## Notation
 Homogeneous coordinate transformations are provided as 4x4 `numpy.array` objects and are denoted as `T_destinationFrame_originFrame`.
 
