@@ -31,7 +31,7 @@ Homogeneous coordinate transformations are provided as 4x4 `numpy.array` objects
 Pinhole camera intrinsics for camera `N` are provided as 3x3 `numpy.array` objects and are denoted as `K_camN`. Stereo pair baselines are given in meters as `b_gray` for the monochrome stereo pair (`cam0` and `cam1`), and `b_rgb` for the color stereo pair (`cam2` and `cam3`).
 
 ## Example
-More detailed examples can be found in the `demos` directory, but the general idea is to specify what dataset you want to load, then access the parts you need and do something with them:
+More detailed examples can be found in the `demos` directory, but the general idea is to specify what dataset you want to load, then access the parts you need and do something with them.
 
 ```python
 import pykitti
@@ -42,16 +42,17 @@ drive = '0019'
 
 # The 'frames' argument is optional - default: None, which loads the whole dataset.
 # Calibration and timestamp data are read automatically. 
-# Other sensor data (cameras, IMU, Velodyne) are available via generators.
+# Other sensor data (cameras, IMU, Velodyne) are available via properties 
+# that create generators when accessed.
 data = pykitti.raw(basedir, date, drive, frames=range(0, 50, 5))
 
 # dataset.calib:      Calibration data are accessible as a named tuple
 # dataset.timestamps: Timestamps are parsed into a list of datetime objects
-# dataset.oxts:       Generator to load OXTS packets as named tuples
-# dataset.camN:       Generator to load individual images from camera N
-# dataset.gray:       Generator to load monochrome stereo pairs (cam0, cam1)
-# dataset.rgb:        Generator to load RGB stereo pairs (cam2, cam3)
-# dataset.velo:       Generator to load velodyne scans as [x,y,z,reflectance]
+# dataset.oxts:       Returns a generator that loads OXTS packets as named tuples
+# dataset.camN:       Returns a generator that loads individual images from camera N
+# dataset.gray:       Returns a generator that loads monochrome stereo pairs (cam0, cam1)
+# dataset.rgb:        Returns a generator that loads RGB stereo pairs (cam2, cam3)
+# dataset.velo:       Returns a generator that loads velodyne scans as [x,y,z,reflectance]
 
 point_velo = np.array([0,0,0,1])
 point_cam0 = data.calib.T_cam0_velo.dot(point_velo)
@@ -59,8 +60,11 @@ point_cam0 = data.calib.T_cam0_velo.dot(point_velo)
 point_imu = np.array([0,0,0,1])
 point_w = [o.T_w_imu.dot(point_imu) for o in data.oxts]
 
-cam0_image = next(data.cam0)
-cam2_image, cam3_image = next(data.rgb)
+for cam0_image in data.cam0:
+    pass
+
+rgb_iterator = data.rgb
+cam2_image, cam3_image = next(rgb_iterator)
 ```
 ### OpenCV
 Image data can be automatically converted to an OpenCV-friendly format (i.e., `uint8` with `BGR` color channel ordering) simply by specifying an additional parameter in the constructor:
