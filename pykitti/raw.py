@@ -130,6 +130,7 @@ class raw:
         filepath = os.path.join(self.calib_path, filename)
         data = utils.read_calib_file(filepath)
         return utils.transform_from_rot_trans(data['R'], data['T'])
+        
 
     def _load_calib_cam_to_cam(self, velo_to_cam_file, cam_to_cam_file):
         # We'll return the camera calibration as a dictionary
@@ -148,10 +149,27 @@ class raw:
         P_rect_10 = np.reshape(filedata['P_rect_01'], (3, 4))
         P_rect_20 = np.reshape(filedata['P_rect_02'], (3, 4))
         P_rect_30 = np.reshape(filedata['P_rect_03'], (3, 4))
+        
+        data['P_rect_00'] = P_rect_00
+        data['P_rect_10'] = P_rect_10
+        data['P_rect_20'] = P_rect_20
+        data['P_rect_30'] = P_rect_30
 
-        # Create 4x4 matrix from the rectifying rotation matrix
+
+        # Create 4x4 matrices from the rectifying rotation matrices
         R_rect_00 = np.eye(4)
         R_rect_00[0:3, 0:3] = np.reshape(filedata['R_rect_00'], (3, 3))
+        R_rect_10 = np.eye(4)
+        R_rect_10[0:3, 0:3] = np.reshape(filedata['R_rect_01'], (3, 3))
+        R_rect_20 = np.eye(4)
+        R_rect_20[0:3, 0:3] = np.reshape(filedata['R_rect_02'], (3, 3))
+        R_rect_30 = np.eye(4)
+        R_rect_30[0:3, 0:3] = np.reshape(filedata['R_rect_03'], (3, 3))
+        
+        data['R_rect_00'] = R_rect_00
+        data['R_rect_10'] = R_rect_10
+        data['R_rect_20'] = R_rect_20
+        data['R_rect_30'] = R_rect_30
 
         # Compute the rectified extrinsics from cam0 to camN
         T0 = np.eye(4)
