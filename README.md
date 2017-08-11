@@ -63,7 +63,7 @@ point_w = [o.T_w_imu.dot(point_imu) for o in data.oxts]
 for cam0_image in data.cam0:
     pass
 
-rgb_iterator = data.rgb
+rgb_iterator = data.rgb # Assign the generator so it doesn't 
 cam2_image, cam3_image = next(rgb_iterator)
 ```
 ### OpenCV

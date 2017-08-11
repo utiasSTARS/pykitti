@@ -144,6 +144,11 @@ class odometry:
         P_rect_20 = np.reshape(filedata['P2'], (3, 4))
         P_rect_30 = np.reshape(filedata['P3'], (3, 4))
 
+        data['P_rect_00'] = P_rect_00
+        data['P_rect_10'] = P_rect_10
+        data['P_rect_20'] = P_rect_20
+        data['P_rect_30'] = P_rect_30
+
         # Compute the rectified extrinsics from cam0 to camN
         T1 = np.eye(4)
         T1[0, 3] = P_rect_10[0, 3] / P_rect_10[0, 0]
