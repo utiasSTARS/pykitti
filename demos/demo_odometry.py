@@ -30,12 +30,12 @@ dataset = pykitti.odometry(basedir, sequence, frames=range(0, 20, 5))
 # dataset.velo:       Generator to load velodyne scans as [x,y,z,reflectance]
 
 # Grab some data
-second_pose = next(itertools.islice(dataset.poses, 1, None))
-first_gray = next(dataset.gray)
-first_cam1 = next(dataset.cam1)
-first_rgb = next(dataset.rgb)
-first_cam2 = next(dataset.cam2)
-third_velo = next(itertools.islice(dataset.velo, 2, None))
+second_pose = next(iter(itertools.islice(dataset.poses, 1, None)))
+first_gray = next(iter(dataset.gray))
+first_cam1 = next(iter(dataset.cam1))
+first_rgb = next(iter(dataset.rgb))
+first_cam2 = next(iter(dataset.cam2))
+third_velo = next(iter(itertools.islice(dataset.velo, 2, None)))
 
 # Display some of the data
 np.set_printoptions(precision=4, suppress=True)
