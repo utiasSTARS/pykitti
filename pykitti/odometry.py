@@ -43,7 +43,11 @@ class odometry:
         # Read and parse the poses
         try:
             with open(pose_file, 'r') as f:
-                for line in f.readlines():
+                lines = f.readlines()
+                if self.frames is not None:
+                    lines = [lines[i] for i in self.frames]
+                    
+                for line in lines:
                     T_w_cam0 = np.fromstring(line, dtype=float, sep=' ')
                     T_w_cam0 = T_w_cam0.reshape(3, 4)
                     T_w_cam0 = np.vstack((T_w_cam0, [0, 0, 0, 1]))
