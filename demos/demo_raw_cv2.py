@@ -29,8 +29,8 @@ dataset = pykitti.raw(basedir, date, drive,
 # dataset.velo:       Generator to load velodyne scans as [x,y,z,reflectance]
 
 # Grab some data
-first_gray = next(dataset.gray)
-first_rgb = next(dataset.rgb)
+first_gray = next(iter(dataset.gray))
+first_rgb = next(iter(dataset.rgb))
 
 # Do some stereo processing
 stereo = cv2.StereoBM_create()
