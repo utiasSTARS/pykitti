@@ -27,6 +27,9 @@ class raw:
         # easy use with OpenCV.
         self.imformat = kwargs.get('imformat', None)
 
+        # Default image file extension is '.png'
+        self.imtype = kwargs.get('imtype', 'png')
+
         # Pre-load data that isn't returned as a generator
         self._load_calib()
         self._load_timestamps()
@@ -52,7 +55,8 @@ class raw:
     @property
     def cam0(self):
         """Generator to read image files for cam0 (monochrome left)."""
-        impath = os.path.join(self.data_path, 'image_00', 'data', '*.png')
+        impath = os.path.join(self.data_path, 'image_00',
+                              'data', '*.{}'.format(self.imtype))
         imfiles = sorted(glob.glob(impath))
         # Subselect the chosen range of frames, if any
         if self.frames is not None:
@@ -64,7 +68,8 @@ class raw:
     @property
     def cam1(self):
         """Generator to read image files for cam1 (monochrome right)."""
-        impath = os.path.join(self.data_path, 'image_01', 'data', '*.png')
+        impath = os.path.join(self.data_path, 'image_01',
+                              'data', '*.{}'.format(self.imtype))
         imfiles = sorted(glob.glob(impath))
         # Subselect the chosen range of frames, if any
         if self.frames is not None:
@@ -76,7 +81,8 @@ class raw:
     @property
     def cam2(self):
         """Generator to read image files for cam2 (RGB left)."""
-        impath = os.path.join(self.data_path, 'image_02', 'data', '*.png')
+        impath = os.path.join(self.data_path, 'image_02',
+                              'data', '*.{}'.format(self.imtype))
         imfiles = sorted(glob.glob(impath))
         # Subselect the chosen range of frames, if any
         if self.frames is not None:
@@ -88,7 +94,8 @@ class raw:
     @property
     def cam3(self):
         """Generator to read image files for cam0 (RGB right)."""
-        impath = os.path.join(self.data_path, 'image_03', 'data', '*.png')
+        impath = os.path.join(self.data_path, 'image_03',
+                              'data', '*.{}'.format(self.imtype))
         imfiles = sorted(glob.glob(impath))
         # Subselect the chosen range of frames, if any
         if self.frames is not None:
