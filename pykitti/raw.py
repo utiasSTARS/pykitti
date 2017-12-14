@@ -219,7 +219,7 @@ class raw:
         # convert it to a namedtuple to prevent it from being modified later
         data = {}
 
-        # Load the rigid transformation from velodyne to IMU
+        # Load the rigid transformation from IMU to velodyne
         data['T_velo_imu'] = self._load_calib_rigid('calib_imu_to_velo.txt')
 
         # Load the camera intrinsics and extrinsics
