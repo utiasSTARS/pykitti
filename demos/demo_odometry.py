@@ -13,29 +13,27 @@ __email__ = "lee.clement@robotics.utias.utoronto.ca"
 basedir = '/Users/leeclement/Desktop/KITTI/odometry/dataset'
 
 # Specify the dataset to load
-sequence = '01'
+sequence = '04'
 
 # Load the data. Optionally, specify the frame range to load.
-# Passing imformat='cv2' will convert images to uint8 and BGR for
-# easy use with OpenCV.
 # dataset = pykitti.odometry(basedir, sequence)
 dataset = pykitti.odometry(basedir, sequence, frames=range(0, 20, 5))
 
 # dataset.calib:      Calibration data are accessible as a named tuple
 # dataset.timestamps: Timestamps are parsed into a list of timedelta objects
-# dataset.poses:      Generator to load ground truth poses T_w_cam0
+# dataset.poses:      List of ground truth poses T_w_cam0
 # dataset.camN:       Generator to load individual images from camera N
 # dataset.gray:       Generator to load monochrome stereo pairs (cam0, cam1)
 # dataset.rgb:        Generator to load RGB stereo pairs (cam2, cam3)
 # dataset.velo:       Generator to load velodyne scans as [x,y,z,reflectance]
 
 # Grab some data
-second_pose = next(iter(itertools.islice(dataset.poses, 1, None)))
+second_pose = dataset.poses[1]
 first_gray = next(iter(dataset.gray))
 first_cam1 = next(iter(dataset.cam1))
-first_rgb = next(iter(dataset.rgb))
-first_cam2 = next(iter(dataset.cam2))
-third_velo = next(iter(itertools.islice(dataset.velo, 2, None)))
+first_rgb = dataset.get_rgb(0)
+first_cam2 = dataset.get_cam2(0)
+third_velo = dataset.get_velo(2)
 
 # Display some of the data
 np.set_printoptions(precision=4, suppress=True)

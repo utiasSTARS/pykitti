@@ -2,11 +2,33 @@
 
 from collections import namedtuple
 
-import matplotlib.image as mpimg
 import numpy as np
+from PIL import Image
 
 __author__ = "Lee Clement"
 __email__ = "lee.clement@robotics.utias.utoronto.ca"
+
+# Per dataformat.txt
+OxtsPacket = namedtuple('OxtsPacket',
+                        'lat, lon, alt, ' +
+                        'roll, pitch, yaw, ' +
+                        'vn, ve, vf, vl, vu, ' +
+                        'ax, ay, az, af, al, au, ' +
+                        'wx, wy, wz, wf, wl, wu, ' +
+                        'pos_accuracy, vel_accuracy, ' +
+                        'navstat, numsats, ' +
+                        'posmode, velmode, orimode')
+
+# Bundle into an easy-to-access structure
+OxtsData = namedtuple('OxtsData', 'packet, T_w_imu')
+
+
+def subselect_files(files, indices):
+    try:
+        files = [files[i] for i in indices]
+    except:
+        pass
+    return files
 
 
 def rotx(t):
@@ -82,30 +104,18 @@ def pose_from_oxts_packet(packet, scale):
     return R, t
 
 
-def get_oxts_packets_and_poses(oxts_files):
+def load_oxts_packets_and_poses(oxts_files):
     """Generator to read OXTS ground truth data.
 
        Poses are given in an East-North-Up coordinate system 
        whose origin is the first GPS position.
     """
-    # Per dataformat.txt
-    OxtsPacket = namedtuple('OxtsPacket',
-                            'lat, lon, alt, ' +
-                            'roll, pitch, yaw, ' +
-                            'vn, ve, vf, vl, vu, ' +
-                            'ax, ay, az, af, al, au, ' +
-                            'wx, wy, wz, wf, wl, wu, ' +
-                            'pos_accuracy, vel_accuracy, ' +
-                            'navstat, numsats, ' +
-                            'posmode, velmode, orimode')
-
-    # Bundle into an easy-to-access structure
-    OxtsData = namedtuple('OxtsData', 'packet, T_w_imu')
-
     # Scale for Mercator projection (from first lat value)
     scale = None
     # Origin of the global coordinate system (first GPS position)
     origin = None
+
+    oxts = []
 
     for filename in oxts_files:
         with open(filename, 'r') as f:
@@ -127,27 +137,29 @@ def get_oxts_packets_and_poses(oxts_files):
 
                 T_w_imu = transform_from_rot_trans(R, t - origin)
 
-                yield OxtsData(packet, T_w_imu)
+                oxts.append(OxtsData(packet, T_w_imu))
+
+    return oxts
 
 
-def get_images(imfiles, imformat):
+def load_image(file, mode):
+    """Load an image from file."""
+    return Image.open(file).convert(mode)
+
+
+def yield_images(imfiles, mode):
     """Generator to read image files."""
     for file in imfiles:
-        # Convert to uint8 and BGR for OpenCV if requested
-        if imformat is 'cv2':
-            im = np.uint8(mpimg.imread(file) * 255)
-
-            # Convert RGB to BGR
-            if len(im.shape) > 2:
-                im = im[:, :, ::-1]
-        else:
-            im = mpimg.imread(file)
-
-        yield im
+        yield load_image(file, mode)
 
 
-def get_velo_scans(velo_files):
+def load_velo_scan(file):
+    """Load and parse a velodyne binary file."""
+    scan = np.fromfile(file, dtype=np.float32)
+    return scan.reshape((-1, 4))
+
+
+def yield_velo_scans(velo_files):
     """Generator to parse velodyne binary files into arrays."""
-    for filename in velo_files:
-        scan = np.fromfile(filename, dtype=np.float32)
-        yield scan.reshape((-1, 4))
+    for file in velo_files:
+        yield load_velo_scan(file)

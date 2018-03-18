@@ -23,94 +23,56 @@ class odometry:
         self.pose_path = os.path.join(base_path, 'poses')
         self.frames = kwargs.get('frames', None)
 
-        # Setting imformat='cv2' will convert the images to uint8 and BGR for
-        # easy use with OpenCV.
-        self.imformat = kwargs.get('imformat', None)
-
         # Default image file extension is 'png'
         self.imtype = kwargs.get('imtype', 'png')
+
+        # Find all the data files
+        self._get_file_lists()
 
         # Pre-load data that isn't returned as a generator
         self._load_calib()
         self._load_timestamps()
+        self._load_poses()
 
     def __len__(self):
         """Return the number of frames loaded."""
         return len(self.timestamps)
 
     @property
-    def poses(self):
-        """Generator to load ground truth poses (T_w_cam0) from file."""
-        pose_file = os.path.join(self.pose_path, self.sequence + '.txt')
-
-        # Read and parse the poses
-        try:
-            with open(pose_file, 'r') as f:
-                lines = f.readlines()
-                if self.frames is not None:
-                    lines = [lines[i] for i in self.frames]
-
-                for line in lines:
-                    T_w_cam0 = np.fromstring(line, dtype=float, sep=' ')
-                    T_w_cam0 = T_w_cam0.reshape(3, 4)
-                    T_w_cam0 = np.vstack((T_w_cam0, [0, 0, 0, 1]))
-                    yield T_w_cam0
-
-        except FileNotFoundError:
-            print('Ground truth poses are not avaialble for sequence ' +
-                  self.sequence + '.')
-
-    @property
     def cam0(self):
         """Generator to read image files for cam0 (monochrome left)."""
-        impath = os.path.join(self.sequence_path, 'image_0',
-                              '*.{}'.format(self.imtype))
-        imfiles = sorted(glob.glob(impath))
-        # Subselect the chosen range of frames, if any
-        if self.frames is not None:
-            imfiles = [imfiles[i] for i in self.frames]
+        return utils.yield_images(self.cam0_files, mode='L')
 
-        # Return a generator yielding the images
-        return utils.get_images(imfiles, self.imformat)
+    def get_cam0(self, idx):
+        """Read image file for cam0 (monochrome left) at the specified index."""
+        return utils.load_image(self.cam0_files[idx], mode='L')
 
     @property
     def cam1(self):
         """Generator to read image files for cam1 (monochrome right)."""
-        impath = os.path.join(self.sequence_path, 'image_1',
-                              '*.{}'.format(self.imtype))
-        imfiles = sorted(glob.glob(impath))
-        # Subselect the chosen range of frames, if any
-        if self.frames is not None:
-            imfiles = [imfiles[i] for i in self.frames]
+        return utils.yield_images(self.cam1_files, mode='L')
 
-        # Return a generator yielding the images
-        return utils.get_images(imfiles, self.imformat)
+    def get_cam1(self, idx):
+        """Read image file for cam1 (monochrome right) at the specified index."""
+        return utils.load_image(self.cam1_files[idx], mode='L')
 
     @property
     def cam2(self):
         """Generator to read image files for cam2 (RGB left)."""
-        impath = os.path.join(self.sequence_path, 'image_2',
-                              '*.{}'.format(self.imtype))
-        imfiles = sorted(glob.glob(impath))
-        # Subselect the chosen range of frames, if any
-        if self.frames is not None:
-            imfiles = [imfiles[i] for i in self.frames]
+        return utils.yield_images(self.cam2_files, mode='RGB')
 
-        # Return a generator yielding the images
-        return utils.get_images(imfiles, self.imformat)
+    def get_cam2(self, idx):
+        """Read image file for cam2 (RGB left) at the specified index."""
+        return utils.load_image(self.cam2_files[idx], mode='RGB')
 
     @property
     def cam3(self):
         """Generator to read image files for cam0 (RGB right)."""
-        impath = os.path.join(self.sequence_path, 'image_3',
-                              '*.{}'.format(self.imtype))
-        imfiles = sorted(glob.glob(impath))
-        # Subselect the chosen range of frames, if any
-        if self.frames is not None:
-            imfiles = [imfiles[i] for i in self.frames]
+        return utils.yield_images(self.cam3_files, mode='RGB')
 
-        # Return a generator yielding the images
-        return utils.get_images(imfiles, self.imformat)
+    def get_cam3(self, idx):
+        """Read image file for cam3 (RGB right) at the specified index."""
+        return utils.load_image(self.cam3_files[idx], mode='RGB')
 
     @property
     def gray(self):
@@ -118,26 +80,61 @@ class odometry:
         """
         return zip(self.cam0, self.cam1)
 
+    def get_gray(self, idx):
+        """Read monochrome stereo pair at the specified index."""
+        return (self.get_cam0(idx), self.get_cam1(idx))
+
     @property
     def rgb(self):
         """Generator to read RGB stereo pairs from file.
         """
         return zip(self.cam2, self.cam3)
 
+    def get_rgb(self, idx):
+        """Read RGB stereo pair at the specified index."""
+        return (self.get_cam2(idx), self.get_cam3(idx))
+
     @property
     def velo(self):
         """Generator to read velodyne [x,y,z,reflectance] scan data from binary files."""
-        # Find all the Velodyne files
-        velo_path = os.path.join(self.sequence_path, 'velodyne', '*.bin')
-        velo_files = sorted(glob.glob(velo_path))
+        # Return a generator yielding Velodyne scans.
+        # Each scan is a Nx4 array of [x,y,z,reflectance]
+        return utils.yield_velo_scans(self.velo_files)
+
+    def get_velo(self, idx):
+        """Read velodyne [x,y,z,reflectance] scan at the specified index."""
+        return utils.load_velo_scan(self.velo_files[idx])
+
+    def _get_file_lists(self):
+        """Find and list data files for each sensor."""
+        self.cam0_files = sorted(glob.glob(
+            os.path.join(self.sequence_path, 'image_0',
+                         '*.{}'.format(self.imtype))))
+        self.cam1_files = sorted(glob.glob(
+            os.path.join(self.sequence_path, 'image_1',
+                         '*.{}'.format(self.imtype))))
+        self.cam2_files = sorted(glob.glob(
+            os.path.join(self.sequence_path, 'image_2',
+                         '*.{}'.format(self.imtype))))
+        self.cam3_files = sorted(glob.glob(
+            os.path.join(self.sequence_path, 'image_3',
+                         '*.{}'.format(self.imtype))))
+        self.velo_files = sorted(glob.glob(
+            os.path.join(self.sequence_path, 'velodyne',
+                         '*.bin')))
 
         # Subselect the chosen range of frames, if any
         if self.frames is not None:
-            velo_files = [velo_files[i] for i in self.frames]
-
-        # Return a generator yielding Velodyne scans.
-        # Each scan is a Nx4 array of [x,y,z,reflectance]
-        return utils.get_velo_scans(velo_files)
+            self.cam0_files = utils.subselect_files(
+                self.cam0_files, self.frames)
+            self.cam1_files = utils.subselect_files(
+                self.cam1_files, self.frames)
+            self.cam2_files = utils.subselect_files(
+                self.cam2_files, self.frames)
+            self.cam3_files = utils.subselect_files(
+                self.cam3_files, self.frames)
+            self.velo_files = utils.subselect_files(
+                self.velo_files, self.frames)
 
     def _load_calib(self):
         """Load and compute intrinsic and extrinsic calibration parameters."""
@@ -209,3 +206,27 @@ class odometry:
         # Subselect the chosen range of frames, if any
         if self.frames is not None:
             self.timestamps = [self.timestamps[i] for i in self.frames]
+
+    def _load_poses(self):
+        """Load ground truth poses (T_w_cam0) from file."""
+        pose_file = os.path.join(self.pose_path, self.sequence + '.txt')
+
+        # Read and parse the poses
+        poses = []
+        try:
+            with open(pose_file, 'r') as f:
+                lines = f.readlines()
+                if self.frames is not None:
+                    lines = [lines[i] for i in self.frames]
+
+                for line in lines:
+                    T_w_cam0 = np.fromstring(line, dtype=float, sep=' ')
+                    T_w_cam0 = T_w_cam0.reshape(3, 4)
+                    T_w_cam0 = np.vstack((T_w_cam0, [0, 0, 0, 1]))
+                    poses.append(T_w_cam0)
+
+        except FileNotFoundError:
+            print('Ground truth poses are not avaialble for sequence ' +
+                  self.sequence + '.')
+
+        self.poses = poses

@@ -23,86 +23,56 @@ class raw:
         self.data_path = os.path.join(base_path, date, self.drive)
         self.frames = kwargs.get('frames', None)
 
-        # Setting imformat='cv2' will convert the images to uint8 and BGR for
-        # easy use with OpenCV.
-        self.imformat = kwargs.get('imformat', None)
-
         # Default image file extension is '.png'
         self.imtype = kwargs.get('imtype', 'png')
+
+        # Find all the data files
+        self._get_file_lists()
 
         # Pre-load data that isn't returned as a generator
         self._load_calib()
         self._load_timestamps()
+        self._load_oxts()
 
     def __len__(self):
         """Return the number of frames loaded."""
         return len(self.timestamps)
 
     @property
-    def oxts(self):
-        """Generator to read OXTS data from file."""
-        # Find all the data files
-        oxts_path = os.path.join(self.data_path, 'oxts', 'data', '*.txt')
-        oxts_files = sorted(glob.glob(oxts_path))
-
-        # Subselect the chosen range of frames, if any
-        if self.frames is not None:
-            oxts_files = [oxts_files[i] for i in self.frames]
-
-        # Return a generator yielding OXTS packets and poses
-        return utils.get_oxts_packets_and_poses(oxts_files)
-
-    @property
     def cam0(self):
         """Generator to read image files for cam0 (monochrome left)."""
-        impath = os.path.join(self.data_path, 'image_00',
-                              'data', '*.{}'.format(self.imtype))
-        imfiles = sorted(glob.glob(impath))
-        # Subselect the chosen range of frames, if any
-        if self.frames is not None:
-            imfiles = [imfiles[i] for i in self.frames]
+        return utils.yield_images(self.cam0_files, mode='L')
 
-        # Return a generator yielding the images
-        return utils.get_images(imfiles, self.imformat)
+    def get_cam0(self, idx):
+        """Read image file for cam0 (monochrome left) at the specified index."""
+        return utils.load_image(self.cam0_files[idx], mode='L')
 
     @property
     def cam1(self):
         """Generator to read image files for cam1 (monochrome right)."""
-        impath = os.path.join(self.data_path, 'image_01',
-                              'data', '*.{}'.format(self.imtype))
-        imfiles = sorted(glob.glob(impath))
-        # Subselect the chosen range of frames, if any
-        if self.frames is not None:
-            imfiles = [imfiles[i] for i in self.frames]
+        return utils.yield_images(self.cam1_files, mode='L')
 
-        # Return a generator yielding the images
-        return utils.get_images(imfiles, self.imformat)
+    def get_cam1(self, idx):
+        """Read image file for cam1 (monochrome right) at the specified index."""
+        return utils.load_image(self.cam1_files[idx], mode='L')
 
     @property
     def cam2(self):
         """Generator to read image files for cam2 (RGB left)."""
-        impath = os.path.join(self.data_path, 'image_02',
-                              'data', '*.{}'.format(self.imtype))
-        imfiles = sorted(glob.glob(impath))
-        # Subselect the chosen range of frames, if any
-        if self.frames is not None:
-            imfiles = [imfiles[i] for i in self.frames]
+        return utils.yield_images(self.cam2_files, mode='RGB')
 
-        # Return a generator yielding the images
-        return utils.get_images(imfiles, self.imformat)
+    def get_cam2(self, idx):
+        """Read image file for cam2 (RGB left) at the specified index."""
+        return utils.load_image(self.cam2_files[idx], mode='RGB')
 
     @property
     def cam3(self):
         """Generator to read image files for cam0 (RGB right)."""
-        impath = os.path.join(self.data_path, 'image_03',
-                              'data', '*.{}'.format(self.imtype))
-        imfiles = sorted(glob.glob(impath))
-        # Subselect the chosen range of frames, if any
-        if self.frames is not None:
-            imfiles = [imfiles[i] for i in self.frames]
+        return utils.yield_images(self.cam3_files, mode='RGB')
 
-        # Return a generator yielding the images
-        return utils.get_images(imfiles, self.imformat)
+    def get_cam3(self, idx):
+        """Read image file for cam3 (RGB right) at the specified index."""
+        return utils.load_image(self.cam3_files[idx], mode='RGB')
 
     @property
     def gray(self):
@@ -110,27 +80,65 @@ class raw:
         """
         return zip(self.cam0, self.cam1)
 
+    def get_gray(self, idx):
+        """Read monochrome stereo pair at the specified index."""
+        return (self.get_cam0(idx), self.get_cam1(idx))
+
     @property
     def rgb(self):
         """Generator to read RGB stereo pairs from file.
         """
         return zip(self.cam2, self.cam3)
 
+    def get_rgb(self, idx):
+        """Read RGB stereo pair at the specified index."""
+        return (self.get_cam2(idx), self.get_cam3(idx))
+
     @property
     def velo(self):
         """Generator to read velodyne [x,y,z,reflectance] scan data from binary files."""
-        # Find all the Velodyne files
-        velo_path = os.path.join(
-            self.data_path, 'velodyne_points', 'data', '*.bin')
-        velo_files = sorted(glob.glob(velo_path))
+        # Return a generator yielding Velodyne scans.
+        # Each scan is a Nx4 array of [x,y,z,reflectance]
+        return utils.yield_velo_scans(self.velo_files)
+
+    def get_velo(self, idx):
+        """Read velodyne [x,y,z,reflectance] scan at the specified index."""
+        return utils.load_velo_scan(self.velo_files[idx])
+
+    def _get_file_lists(self):
+        """Find and list data files for each sensor."""
+        self.oxts_files = sorted(glob.glob(
+            os.path.join(self.data_path, 'oxts', 'data', '*.txt')))
+        self.cam0_files = sorted(glob.glob(
+            os.path.join(self.data_path, 'image_00',
+                         'data', '*.{}'.format(self.imtype))))
+        self.cam1_files = sorted(glob.glob(
+            os.path.join(self.data_path, 'image_01',
+                         'data', '*.{}'.format(self.imtype))))
+        self.cam2_files = sorted(glob.glob(
+            os.path.join(self.data_path, 'image_02',
+                         'data', '*.{}'.format(self.imtype))))
+        self.cam3_files = sorted(glob.glob(
+            os.path.join(self.data_path, 'image_03',
+                         'data', '*.{}'.format(self.imtype))))
+        self.velo_files = sorted(glob.glob(
+            os.path.join(self.data_path, 'velodyne_points',
+                         'data', '*.bin')))
 
         # Subselect the chosen range of frames, if any
         if self.frames is not None:
-            velo_files = [velo_files[i] for i in self.frames]
-
-        # Return a generator yielding Velodyne scans.
-        # Each scan is a Nx4 array of [x,y,z,reflectance]
-        return utils.get_velo_scans(velo_files)
+            self.oxts_files = utils.subselect_files(
+                self.oxts_files, self.frames)
+            self.cam0_files = utils.subselect_files(
+                self.cam0_files, self.frames)
+            self.cam1_files = utils.subselect_files(
+                self.cam1_files, self.frames)
+            self.cam2_files = utils.subselect_files(
+                self.cam2_files, self.frames)
+            self.cam3_files = utils.subselect_files(
+                self.cam3_files, self.frames)
+            self.velo_files = utils.subselect_files(
+                self.velo_files, self.frames)
 
     def _load_calib_rigid(self, filename):
         """Read a rigid transform calibration file as a numpy.array."""
@@ -252,3 +260,7 @@ class raw:
         # Subselect the chosen range of frames, if any
         if self.frames is not None:
             self.timestamps = [self.timestamps[i] for i in self.frames]
+
+    def _load_oxts(self):
+        """Load OXTS data from file."""
+        self.oxts = utils.load_oxts_packets_and_poses(self.oxts_files)

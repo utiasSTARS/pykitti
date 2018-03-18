@@ -14,29 +14,31 @@ basedir = '/Users/leeclement/Desktop/KITTI/raw'
 
 # Specify the dataset to load
 date = '2011_09_30'
-drive = '0016'
+drive = '0034'
 
 # Load the data. Optionally, specify the frame range to load.
-# Passing imformat='cv2' will convert images to uint8 and BGR for
-# easy use with OpenCV.
 # dataset = pykitti.raw(basedir, date, drive)
 dataset = pykitti.raw(basedir, date, drive, frames=range(0, 20, 5))
 
-# dataset.calib:      Calibration data are accessible as a named tuple
-# dataset.timestamps: Timestamps are parsed into a list of datetime objects
-# dataset.oxts:       Generator to load OXTS packets as named tuples
-# dataset.camN:       Generator to load individual images from camera N
-# dataset.gray:       Generator to load monochrome stereo pairs (cam0, cam1)
-# dataset.rgb:        Generator to load RGB stereo pairs (cam2, cam3)
-# dataset.velo:       Generator to load velodyne scans as [x,y,z,reflectance]
+# dataset.calib:         Calibration data are accessible as a named tuple
+# dataset.timestamps:    Timestamps are parsed into a list of datetime objects
+# dataset.oxts:          List of OXTS packets and 6-dof poses as named tuples
+# dataset.camN:          Returns a generator that loads individual images from camera N
+# dataset.get_camN(idx): Returns the image from camera N at idx
+# dataset.gray:          Returns a generator that loads monochrome stereo pairs (cam0, cam1)
+# dataset.get_gray(idx): Returns the monochrome stereo pair at idx
+# dataset.rgb:           Returns a generator that loads RGB stereo pairs (cam2, cam3)
+# dataset.get_rgb(idx):  Returns the RGB stereo pair at idx
+# dataset.velo:          Returns a generator that loads velodyne scans as [x,y,z,reflectance]
+# dataset.get_velo(idx): Returns the velodyne scan at idx
 
 # Grab some data
-second_pose = next(iter(itertools.islice(dataset.oxts, 1, None))).T_w_imu
+second_pose = dataset.oxts[1].T_w_imu
 first_gray = next(iter(dataset.gray))
 first_cam1 = next(iter(dataset.cam1))
-first_rgb = next(iter(dataset.rgb))
-first_cam2 = next(iter(dataset.cam2))
-third_velo = next(iter(itertools.islice(dataset.velo, 2, None)))
+first_rgb = dataset.get_rgb(0)
+first_cam2 = dataset.get_cam2(0)
+third_velo = dataset.get_velo(2)
 
 # Display some of the data
 np.set_printoptions(precision=4, suppress=True)
