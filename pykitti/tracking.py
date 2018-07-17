@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 
 import pykitti.utils as utils
+import cv2
 
 try:
     xrange
@@ -33,7 +34,7 @@ class tracking:
 
         # Find all the data files
         self._get_file_lists()
-
+        print('files', len(self.cam2_files))
         # Pre-load data that isn't returned as a generator
         # self._load_calib()
 
@@ -250,7 +251,7 @@ class KittiTrackingLabels(object):
             self._convert_type(c, np.int32, np.int64)
 
 
-        # TODO: What is this for?
+        # TODO: Add occlusion filtering back in
         truncated_threshold=(0, 2.)
         occluded_threshold=(0, 3.)
         # if not nest.is_sequence(occluded_threshold):
@@ -258,12 +259,12 @@ class KittiTrackingLabels(object):
         #
         # if not nest.is_sequence(truncated_threshold):
         #     truncated_threshold = (0, truncated_threshold)
-
-        self._df = self._df[self._df['occluded'] >= occluded_threshold[0]]
-        self._df = self._df[self._df['occluded'] <= occluded_threshold[1]]
-
-        self._df = self._df[self._df['truncated'] >= truncated_threshold[0]]
-        self._df = self._df[self._df['truncated'] <= truncated_threshold[1]]
+        # TODO: Add occlusion filteringinback in
+        # self._df = self._df[self._df['occluded'] >= occluded_threshold[0]]
+        # self._df = self._df[self._df['occluded'] <= occluded_threshold[1]]
+        #
+        # self._df = self._df[self._df['truncated'] >= truncated_threshold[0]]
+        # self._df = self._df[self._df['truncated'] <= truncated_threshold[1]]
 
         # make 0-based contiguous ids
         ids = self._df.id.unique()
@@ -288,7 +289,8 @@ class KittiTrackingLabels(object):
 
     @property
     def bbox(self):
-        bbox = self._df[['id', 'y1', 'x1', 'y2', 'x2']].copy()
+        bbox = self._df[['id', 'x1', 'y1', 'x2', 'y2']].copy()
+        # TODO: Fix this to become x, y, w, h
         if self.bbox_with_size:
             bbox['y2'] -= bbox['y1']
             bbox['x2'] -= bbox['x1']
