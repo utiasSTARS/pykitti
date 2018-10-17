@@ -18,7 +18,8 @@ class raw:
 
     def __init__(self, base_path, date, drive, **kwargs):
         """Set the path and pre-load calibration data and timestamps."""
-        self.drive = date + '_drive_' + drive + '_sync'
+        self.dataset = kwargs.get('dataset', 'sync')
+        self.drive = date + '_drive_' + drive + '_' + self.dataset
         self.calib_path = os.path.join(base_path, date)
         self.data_path = os.path.join(base_path, date, self.drive)
         self.frames = kwargs.get('frames', None)
