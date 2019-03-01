@@ -226,7 +226,7 @@ class odometry:
                     poses.append(T_w_cam0)
 
         except FileNotFoundError:
-            print('Ground truth poses are not avaialble for sequence ' +
+            print('Ground truth poses are not available for sequence ' +
                   self.sequence + '.')
 
         self.poses = poses
