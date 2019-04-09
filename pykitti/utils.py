@@ -22,6 +22,15 @@ OxtsPacket = namedtuple('OxtsPacket',
 # Bundle into an easy-to-access structure
 OxtsData = namedtuple('OxtsData', 'packet, T_w_imu')
 
+# Data structures for object and tracking data
+ObjectData = namedtuple('ObjectData', 
+                        'track_id, type, truncated, ' +
+                        'occluded, alpha, bbox, dimensions, ' +
+                        'location, rotation_y, score')
+BoundingBox = namedtuple('BoundingBox', 'left, top, right, bottom')
+Dimensions = namedtuple('Dimensions', 'length, height, width')
+Location = namedtuple('Location', 'x, y, z')
+
 
 def subselect_files(files, indices):
     try:
