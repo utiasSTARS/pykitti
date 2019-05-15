@@ -24,8 +24,8 @@ class odometry:
 
     def __init__(self, base_path, sequence, **kwargs):
         """Set the path."""
-        self.sequence = sequence
-        self.sequence_path = os.path.join(base_path, 'sequences', sequence)
+        self.sequence = str(sequence).zfill(2)
+        self.sequence_path = os.path.join(base_path, 'sequences', self.sequence)
         self.pose_path = os.path.join(base_path, 'poses')
         self.frames = kwargs.get('frames', None)
 
