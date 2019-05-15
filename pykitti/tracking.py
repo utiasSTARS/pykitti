@@ -9,7 +9,6 @@ import pandas as pd
 import numpy as np
 
 import pykitti.utils as utils
-import cv2
 
 try:
     xrange
