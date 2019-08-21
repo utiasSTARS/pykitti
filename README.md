@@ -37,6 +37,7 @@ Camera and velodyne data are available via generators for easy sequential access
 
 ```python
 import pykitti
+import numpy as np
 
 basedir = '/your/dataset/dir'
 date = '2011_09_26'
