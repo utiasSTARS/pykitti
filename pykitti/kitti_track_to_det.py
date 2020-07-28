@@ -1,3 +1,4 @@
+#change proposed by Sarim Mehdi (Grad Student at University of Bologna, Italy)
 import argparse
 import os
 import natsort
@@ -85,7 +86,3 @@ for folder_type in ['training', 'testing']:
                     label_file_write.write(str(label_file_read[i][-1]) + '\n')
                 if got_frame and label_file_read[i][0] != int(frame_num): break
             label_file_write.close()
-
-
-
-
