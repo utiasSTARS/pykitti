@@ -129,7 +129,8 @@ class tracking:
         data = {}
 
         # Load the calibration file
-        calib_filepath = os.path.join(self.sequence_path + '.txt', 'calib.txt')
+        # calib_filepath = os.path.join(self.sequence_path + '.txt', 'calib.txt')
+        calib_filepath = os.path.join(self.base_path, 'calib', self.sequence + '.txt')
         filedata = utils.read_calib_file(calib_filepath)
 
         # Create 3x4 projection matrices
