@@ -129,7 +129,8 @@ class tracking:
         data = {}
 
         # Load the calibration file
-        calib_filepath = os.path.join(self.sequence_path + '.txt', 'calib.txt')
+        # calib_filepath = os.path.join(self.sequence_path + '.txt', 'calib.txt')
+        calib_filepath = os.path.join(self.base_path, 'calib', self.sequence + '.txt')
         filedata = utils.read_calib_file(calib_filepath)
 
         # Create 3x4 projection matrices
@@ -152,7 +153,7 @@ class tracking:
         T3[0, 3] = P_rect_30[0, 3] / P_rect_30[0, 0]
 
         # Compute the velodyne to rectified camera coordinate transforms
-        data['T_cam0_velo'] = np.reshape(filedata['Tr'], (3, 4))
+        data['T_cam0_velo'] = np.reshape(filedata['Tr_velo_cam'], (3, 4))
         data['T_cam0_velo'] = np.vstack([data['T_cam0_velo'], [0, 0, 0, 1]])
         data['T_cam1_velo'] = T1.dot(data['T_cam0_velo'])
         data['T_cam2_velo'] = T2.dot(data['T_cam0_velo'])
