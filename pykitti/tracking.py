@@ -9,7 +9,6 @@ import pandas as pd
 import numpy as np
 
 import pykitti.utils as utils
-import cv2
 
 try:
     xrange
@@ -26,7 +25,7 @@ class tracking:
     def __init__(self, base_path, sequence, **kwargs):
         """Set the path."""
         self.base_path = base_path
-        self.sequence = sequence
+        self.sequence = str(sequence).zfill(4)
         self.frames = kwargs.get('frames', None)
 
         # Default image file extension is 'png'
